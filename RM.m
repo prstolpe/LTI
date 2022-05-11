@@ -221,37 +221,89 @@ classdef RM < handle
             r = self.alpha*max(v,0);
         end
         
+        function [q_p, q_r, r_p, r_r] = comp_q(self)
+            W = self.W_exc-self.W_inh;
+            tspan = linspace(0, self.t_sim, 100);
+            
+            V_ff = self.J_ff * exp(...
+                -((self.Adiff(self.Theta,self.Phi)).^2)...
+                /(2 * self.sigma_ff^2));
+            [~,v] = ode45(@(t,v)self.dV(v, V_ff, ...
+                W, self.alpha, self.tau),...
+                tspan, self.V_0);
+            r_r = self.alpha * max(v(end,:),0)';
+            dv = self.dV(v(end, :)', V_ff, W, self.alpha, self.tau);
+            q_r = (1/self.N) * (dv'*dv);
+            
+            Phi_probe = self.Phi + ((rand()>.5) * 2 - 1) * self.OD;
+            V_ff = self.J_ff * exp(...
+                -((self.Adiff(self.Theta, Phi_probe)).^2)...
+                /(2 * self.sigma_ff^2));
+            [~,v] = ode45(@(t,v)self.dV(v, V_ff, ...
+                W, self.alpha, self.tau),...
+                tspan, self.V_0);
+            r_p = self.alpha * max(v(end,:),0)';
+            dv = self.dV(v(end, :)', V_ff, W, self.alpha, self.tau);
+            q_p = (1/self.N) * (dv'*dv);
+        end
+        
         % simulation of training session
-        function session(self)
+%         function [W, V_ff, v, correct, W_exc, W_inh, Phi_probe, r_ref, r_pro, m_JND, JND] = session(self)
+        function [q_p, q_r, r_p, r_r ]= session(self)
             self.mean_JND = 0;
             self.counter = 0;
+            W       = NaN(self.trials, self.N, self.N);
+            W_exc   = NaN(self.trials, self.N, self.N);
+            W_inh   = NaN(self.trials, self.N, self.N);
+            V_ff    = NaN(self.trials, self.N);
+            v       = NaN(self.trials, 100, self.N);
+            correct = NaN(self.trials, 1);
+            Phi_probe = NaN(self.trials, 1);
+            r_ref   = NaN(self.trials, 100, self.N);
+            r_pro   = NaN(self.trials, 100, self.N);
+%             dW_inh  = NaN(self.trials, self.N);
+            m_JND   = NaN(self.trials, 1);
+            JND     = NaN(self.trials, 1);
+            q_p       = NaN(self.trials, 1);
+            q_r       = NaN(self.trials, 1);
+            r_p       = NaN(self.trials, self.N);
+            r_r       = NaN(self.trials, self.N);
+            
             for t=1:self.trials
-                self.trial();
+                [W(t, :, :), V_ff(t, :), v(t, :, :), correct(t), W_exc(t, :, :), W_inh(t, :, :), Phi_probe(t), r_ref(t, :, :), r_pro(t, :, :)] = self.trial();
                 self.mean_JND = self.mean_JND+...
                     (self.OD-self.mean_JND)/t;
+                m_JND(t)    = self.mean_JND;
+                JND(t)      = self.OD-self.mean_JND;
+                [q_p(t), q_r(t), r_p(t, :), r_r(t, :)]        = self.comp_q();
             end
         end
     end
     
     methods (Access = private)
         % simulation of individual trial
-        function trial(self)
+        function [W, V_ff, v, correct, W_exc, W_inh, Phi_probe, r_ref, r_pro] = trial(self)
             W = self.W_exc - self.W_inh;
+            W_exc = self.W_exc;     W_inh = self.W_inh;
             V_ff = self.J_ff * exp(...
                 -((self.Adiff(self.Theta,self.Phi)).^2)...
                 /(2 * self.sigma_ff^2));
+            
+            tspan = linspace(0, self.t_sim, 100);
             [~,v] = ode45(@(t,v)self.dV(v, V_ff, ...
                 W, self.alpha, self.tau),...
-                [0 self.t_sim], self.V_0);
+                tspan, self.V_0);
+            r_ref = self.alpha * max(v, 0);
             r = self.alpha * max(v(end,:), 0)';
             M_ref = r * self.t_sim;
             Phi_probe = self.Phi + ((rand()>.5) * 2 - 1) * self.OD;
             V_ff = self.J_ff * exp(...
-                -((self.Adiff(self.Theta,Phi_probe)).^2)...
+                -((self.Adiff(self.Theta, Phi_probe)).^2)...
                 /(2 * self.sigma_ff^2));
             [~,v] = ode45(@(t,v)self.dV(v, V_ff, ...
                 W, self.alpha, self.tau),...
-                [0 self.t_sim], self.V_0);
+                tspan, self.V_0);
+            r_pro = self.alpha * max(v,0);
             r = self.alpha * max(v(end,:),0)';
             M_probe = r * self.t_sim;
             D = abs(M_ref - M_probe)./...
