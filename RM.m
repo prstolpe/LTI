@@ -249,7 +249,7 @@ classdef RM < handle
         
         % simulation of training session
 %         function [W, V_ff, v, correct, W_exc, W_inh, Phi_probe, r_ref, r_pro, m_JND, JND] = session(self)
-        function [q_p, q_r, r_p, r_r ]= session(self)
+        function [q_p, q_r, r_p, r_r, OD]= session(self)
             self.mean_JND = 0;
             self.counter = 0;
             W       = NaN(self.trials, self.N, self.N);
@@ -268,7 +268,7 @@ classdef RM < handle
             q_r       = NaN(self.trials, 1);
             r_p       = NaN(self.trials, self.N);
             r_r       = NaN(self.trials, self.N);
-            
+            OD        = NaN(self.trials, 1);
             for t=1:self.trials
                 [W(t, :, :), V_ff(t, :), v(t, :, :), correct(t), W_exc(t, :, :), W_inh(t, :, :), Phi_probe(t), r_ref(t, :, :), r_pro(t, :, :)] = self.trial();
                 self.mean_JND = self.mean_JND+...
@@ -276,6 +276,7 @@ classdef RM < handle
                 m_JND(t)    = self.mean_JND;
                 JND(t)      = self.OD-self.mean_JND;
                 [q_p(t), q_r(t), r_p(t, :), r_r(t, :)]        = self.comp_q();
+                OD(t)       = self.OD;
             end
         end
     end
