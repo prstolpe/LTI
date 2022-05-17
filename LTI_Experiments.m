@@ -14,8 +14,8 @@ clear all;close all;clc
 
 OD_0     =   4.5;           % initial orientation difference
 Sessions =   8;             % number of sessions
-Reps     =  2;             % number of times each experiment is repeated
-Trials   = 100;             % number of trials per session
+Reps     =  5;             % number of times each experiment is repeated
+Trials   = 480;             % number of trials per session
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -44,7 +44,7 @@ tau      =   1.5e-2;        % membrane time constant (seconds)
 Q = cell(3,1);
 Exp = cell(3,1);    Int = cell(3, 1);
 qp = cell(3,1);     qr = cell(3,1);     rp = cell(3,1);     rr = cell(3,1);
-OD = cell(3, 1);
+OD = cell(3, 1);    Phi = cell(3, 1);
 for i=1:3
     Q{i} = RM(...   % create a model for each of three quadrants
         N,...               % (i.e. experiments)
@@ -68,52 +68,46 @@ for i=1:3
     Exp{i}.At = zeros(Reps,Sessions);
     Int{i}.left = zeros(Reps,Sessions);
     Int{i}.right = zeros(Reps,Sessions);
+    % q probe
     qp{i}.Ab        = NaN(Reps, Sessions, Trials);
     qp{i}.At        = NaN(Reps, Sessions, Trials);
     qp{i}.left      = NaN(Reps, Sessions, Trials);
     qp{i}.right     = NaN(Reps, Sessions, Trials);
-    
-    qr{i}.Ab = NaN(Reps, Sessions, Trials);
-    qr{i}.At = NaN(Reps, Sessions, Trials);
-    qr{i}.left = NaN(Reps, Sessions, Trials);
-    qr{i}.right = NaN(Reps, Sessions, Trials);
-    
-    rp{i}.Ab = NaN(Reps, Sessions, Trials, N);
-    rp{i}.At = NaN(Reps, Sessions, Trials, N);
-    rp{i}.left = NaN(Reps, Sessions, Trials, N);
-    rp{i}.right = NaN(Reps, Sessions, Trials, N);
-    
-    rr{i}.Ab = NaN(Reps, Sessions, Trials, N);
-    rr{i}.At = NaN(Reps, Sessions, Trials, N);
-    rr{i}.left = NaN(Reps, Sessions, Trials, N);
-    rr{i}.right = NaN(Reps, Sessions, Trials, N);
+    % q reference
+    qr{i}.Ab        = NaN(Reps, Sessions, Trials);
+    qr{i}.At        = NaN(Reps, Sessions, Trials);
+    qr{i}.left      = NaN(Reps, Sessions, Trials);
+    qr{i}.right     = NaN(Reps, Sessions, Trials);
+    % activation probe at end of trial
+    rp{i}.Ab        = NaN(Reps, Sessions, Trials, N);
+    rp{i}.At        = NaN(Reps, Sessions, Trials, N);
+    rp{i}.left      = NaN(Reps, Sessions, Trials, N);
+    rp{i}.right     = NaN(Reps, Sessions, Trials, N);
+    % activation reference at end of trial
+    rr{i}.Ab        = NaN(Reps, Sessions, Trials, N);
+    rr{i}.At        = NaN(Reps, Sessions, Trials, N);
+    rr{i}.left      = NaN(Reps, Sessions, Trials, N);
+    rr{i}.right     = NaN(Reps, Sessions, Trials, N);
+    % orientation difference at each trial
+    OD{i}.Ab        = NaN(Reps, Sessions, Trials);
+    OD{i}.At        = NaN(Reps, Sessions, Trials);
+    OD{i}.left      = NaN(Reps, Sessions, Trials);
+    OD{i}.right     = NaN(Reps, Sessions, Trials);
 
-    OD{i}.Ab = NaN(Reps, Sessions, Trials);
-    OD{i}.At = NaN(Reps, Sessions, Trials);
-    OD{i}.left = NaN(Reps, Sessions, Trials);
-    OD{i}.right = NaN(Reps, Sessions, Trials);
+    % orientation difference at each trial
+    Phi{i}.Ab        = NaN(Reps, Sessions, Trials);
+    Phi{i}.At        = NaN(Reps, Sessions, Trials);
+    Phi{i}.left      = NaN(Reps, Sessions, Trials);
+    Phi{i}.right     = NaN(Reps, Sessions, Trials);
 end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%                             experiments                             %%%
-                                    % 45 = left
+
 % Exp1  (green: 135°    ->          45°          -> 135°)
 % Exp2  (blue:  135°    ->      105° & 165°      -> 135°)
 % Exp3  (red:    //     ->      105° & 165°      -> 135°)
-% W       = NaN(Sessions, Trials, N, N);
-% W_exc   = NaN(Sessions, Trials, N, N);
-% W_inh   = NaN(Sessions, Trials, N, N);
-% V_ff    = NaN(Sessions, Trials, N);
-% v       = NaN(Sessions, Trials, 100, N);
-% correct = NaN(Sessions, Trials);
-% Phi_probe = NaN(Sessions, Trials);
-% r_ref   = NaN(Sessions, Trials, 100, N);
-% r_pro   = NaN(Sessions, Trials, 100, N);
-% % dW_inh  = NaN(Sessions, Trials, N);
-% m_JND   = NaN(Sessions, Trials);
-% JND     = NaN(Sessions, Trials);
-
 
 for r=1:Reps
     fprintf('\n - participant %.2d',r)
@@ -121,8 +115,7 @@ for r=1:Reps
 %     Q{1}.set_PHI(135);
     Q{2}.set_PHI(135);
     for s=1:Sessions
-%         [W(s, :, :, :), V_ff(s, :, :), v(s, :, :, :), correct(s, :), W_exc(s, :, :, :), W_inh(s, :, :, :), Phi_probe(s, :), r_ref(s, :, :, :), r_pro(s, :, :, :), m_JND(s, :), JND(s, :)] = Q{1}.session();
-        [qp{2}.Ab(r, s, :), qr{2}.Ab(r, s, :), rp{2}.Ab(r, s, :, :), rr{2}.Ab(r, s, :, :), OD{2}.Ab(r, s, :)] = Q{2}.session();
+        [qp{2}.Ab(r, s, :), qr{2}.Ab(r, s, :), rp{2}.Ab(r, s, :, :), rr{2}.Ab(r, s, :, :), OD{2}.Ab(r, s, :), Phi{2}.Ab(r, s, :)] = Q{2}.session();
 %         Exp{1}.Ab(r,s) = Q{1}.get_JND * 2;
         Exp{2}.Ab(r,s) = Q{2}.get_JND * 2;
     end
@@ -136,7 +129,7 @@ for r=1:Reps
 %     Q{3}.set_OD();
     for s=1:Sessions
 %         Q{1}.session();
-        [qp{2}.left(r, s, :), qr{2}.left(r, s, :), rp{2}.left(r, s, :, :), rr{2}.left(r, s, :, :), OD{2}.left(r, s, :)] = Q{2}.session();
+        [qp{2}.left(r, s, :), qr{2}.left(r, s, :), rp{2}.left(r, s, :, :), rr{2}.left(r, s, :, :), OD{2}.left(r, s, :), Phi{2}.left(r, s, :)] = Q{2}.session();
 %         Q{3}.session();
 %         Int{1}.left(r,s) = Q{1}.get_JND * 2;
         Int{2}.left(r,s) = Q{2}.get_JND * 2;
@@ -149,7 +142,7 @@ for r=1:Reps
     Q{2}.set_OD();
 %     Q{3}.set_OD();
     for s=1:Sessions
-        [qp{2}.right(r, s, :), qr{2}.right(r, s, :), rp{2}.right(r, s, :, :), rr{2}.right(r, s, :, :), OD{2}.right(r, s, :)] = Q{2}.session();
+        [qp{2}.right(r, s, :), qr{2}.right(r, s, :), rp{2}.right(r, s, :, :), rr{2}.right(r, s, :, :), OD{2}.right(r, s, :), Phi{2}.right(r, s, :)] = Q{2}.session();
 %         Q{3}.session();
         Int{2}.right(r,s) = Q{2}.get_JND * 2;
 %         Int{3}.right(r,s) = Q{3}.get_JND * 2;
@@ -165,7 +158,7 @@ for r=1:Reps
 %     Q{3}.set_OD();
     for s=1:Sessions
 %         Q{1}.session();
-        [qp{2}.At(r, s, :), qr{2}.At(r, s, :), rp{2}.At(r, s, :, :), rr{2}.At(r, s, :, :), OD{2}.At(r, s, :)] = Q{2}.session();
+        [qp{2}.At(r, s, :), qr{2}.At(r, s, :), rp{2}.At(r, s, :, :), rr{2}.At(r, s, :, :), OD{2}.At(r, s, :), Phi{2}.At(r, s, :)] = Q{2}.session();
 %         Q{3}.session();
 %         Exp{1}.At(r,s) = Q{1}.get_JND * 2;
         Exp{2}.At(r,s) = Q{2}.get_JND * 2;
@@ -200,71 +193,68 @@ end
 % legend('boxoff')
 
 % experiment 2
-figure(2)
+figure(2) % JND reference
 subplot(121)
 hold all, grid on
 plot(mean(Exp{2}.Ab),'color',[0 0 .75],'linestyle','--','linewidth',2.5)
 plot(mean(Exp{2}.At),'color',[0 0 .75],'linewidth',2.5)
-set(gca, 'XTick', 1:8)
-set(gca, 'YScale', 'log')
-xlim([0.5 8.5])
-ylim([1.5 8.5])
-xlabel('session')
-ylabel('JND [deg]')
-title('Experiment 2 (ABA)')
-legend('A_B','A_T')
-legend('boxoff')
+set(gca, 'XTick', 1:8), set(gca, 'YScale', 'log')
+xlim([0.5 8.5]),        ylim([1.5 8.5])
+xlabel('session'),      ylabel('JND [deg]')
+title('Experiment 2 (ABA)'),    legend('A_B','A_T'),        legend('boxoff')
 
-subplot(122)
+subplot(122) % interference
 hold all, grid on 
 plot(mean(Int{2}.left),'r-.', 'linewidth',2.5)
 plot(mean(Int{2}.right),'g--', 'linewidth',2.5)
-set(gca, 'XTick', 1:8)
-set(gca, 'YScale', 'log')
-xlim([0.5 8.5])
-ylim([1.5 8.5])
-xlabel('session')
-ylabel('JND [deg]')
+set(gca, 'XTick', 1:8),     set(gca, 'YScale', 'log')
+xlim([0.5 8.5]),            ylim([1.5 8.5])
+xlabel('session'),          ylabel('JND [deg]')
 title('Experiment 2 (ABA)')
-legend('$105^\circ$','$165^\circ$', 'interpreter', 'latex')
-legend('boxoff')
+legend('$105^\circ$','$165^\circ$', 'interpreter', 'latex'),    legend('boxoff')
 
-figure(3)
+figure(3) % q(sessions) probe
 subplot(121)
 plot(mean(squeeze(qp{2}.Ab(1, :, :)), 2), 'color',[0 0 .75],'linestyle','--','linewidth',2.5), hold on
-plot(mean(squeeze(qp{2}.At(1, :, :)), 2), 'color',[0 0 .75],'linewidth',2.5), grid on
-xlabel('session')
+plot(mean(squeeze(qp{2}.At(1, :, :)), 2), 'color',[0 0 .75],'linewidth',2.5), grid on, hold off
+xlabel('session'), ylabel('q [-]')
 xlim([0.5 8.5])
 
 subplot(122)
 plot(mean(squeeze(qp{2}.left(1, :, :)), 2), 'r-.', 'linewidth',2.5), grid on, hold on
 plot(mean(squeeze(qp{2}.right(1, :, :)), 2),'g--', 'linewidth',2.5), hold off
-xlabel('session')
+xlabel('session'), ylabel('q [-]')
 xlim([0.5 8.5])
 legend('$105^\circ$','$165^\circ$', 'interpreter', 'latex')
 
-figure(4)
+figure(4) % q(sessions) reference
 subplot(121)
 plot(mean(squeeze(qr{2}.Ab(1, :, :)), 2), 'color',[0 0 .75],'linestyle','--','linewidth',2.5), hold on 
 plot(mean(squeeze(qr{2}.At(1, :, :)), 2), 'color',[0 0 .75],'linewidth',2.5), grid on
-xlabel('session')
+xlabel('session'), ylabel('q [-]')
 xlim([0.5 8.5])
 
 subplot(122)
 plot(mean(squeeze(qr{2}.left(1, :, :)), 2), 'r-.', 'linewidth',2.5), grid on, hold on
 plot(mean(squeeze(qr{2}.right(1, :, :)), 2),'g--', 'linewidth',2.5), hold off
-xlabel('session')
+xlabel('session'), ylabel('q [-]')
 xlim([0.5 8.5])
 legend('$105^\circ$','$165^\circ$', 'interpreter', 'latex')
 
+%% Part A
+symbols = ['+', '*', 's', '^', 'd', 'p', 'h', '<'];     % symbols per depicted session (max 8)
+legend_entries = ["Session1", "Session2", "Session3", "Session4", "Session5", "Session6", "Session7", "Session8"]';
+legend_indices = [1 3 5 7 9 11 13 15];
+% PCA of reference dataset
 RR = reshape(squeeze(rr{2}.Ab(1, :, :, :)), Sessions*Trials, N);
 [coeff_rr,score_rr,latent_rr, ~, explained_rr, mu_rr] = pca(RR);
+% explained variance
 figure(51)
-plot(cumsum(explained_rr(1:10)), 'LineWidth', 1.5), grid on
-xlabel('# PC'), ylabel('CEV [%]')
+    plot(cumsum(explained_rr(1:5)), 'LineWidth', 1.5), grid on
+    xlabel('# PC'), ylabel('CEV [%]')
 
 figure(5) % colored by kinetic energy
-symbols = ['+', '*', 's', '^', '+', '*', 's', '^']; k = 1;  hp = NaN(Sessions, 1);
+k = 1;  hp = NaN(Sessions, 1); hold all
 for i = 1:Sessions
     % Reference
     score = (squeeze(rr{2}.Ab(1, i, :, :)) - mu_rr)*coeff_rr;
@@ -272,147 +262,146 @@ for i = 1:Sessions
 
     % Probe
     score = (squeeze(rp{2}.Ab(1, i, :, :)) - mu_rr)*coeff_rr;
-    hp(2*i-1)= scatter(score(:, 2), score(:, 1), [], squeeze(qp{2}.Ab(1, i, :)), 'Marker',symbols(k));
-    k = k+1; hold on
+    hp(2*i-1) = scatter(score(:, 2), score(:, 1), [], squeeze(qp{2}.Ab(1, i, :)), 'Marker',symbols(k));
+    k = k+1;
 end
-xlabel('PC 2'), ylabel('PC 1'), grid on
-legend(hp([1 3 5 7 9 11 13 15]), 'Session1', 'Session2', 'Session3', 'Session4', 'Session5', 'Session6', 'Session7', 'Session8')
-colorbar(), hold off
+xlabel('PC 2'), ylabel('PC 1'), grid on, colorbar(), hold off
+legend(hp(legend_indices), legend_entries)
 
 figure(52) % colored by orientation difference
-symbols = ['+', '*', 's', '^', '+', '*', 's', '^']; k = 1;  hp = NaN(Sessions, 1);
+k = 1;  hp = NaN(Sessions, 1); hold all
 for i = 1:Sessions
     % Reference
     score = (squeeze(rr{2}.Ab(1, i, :, :)) - mu_rr)*coeff_rr;
-    hp(2*i) = scatter(score(:, 2), score(:, 1), [], squeeze(qr{2}.Ab(1, i, :)), 'Marker', '.');
+    hp(2*i) = scatter(score(:, 2), score(:, 1), 'k.');
 
     % Probe
     score = (squeeze(rp{2}.Ab(1, i, :, :)) - mu_rr)*coeff_rr;
-    hp(2*i-1)= scatter(score(:, 2), score(:, 1), [], squeeze(OD{2}.Ab(1, i, :)), 'Marker',symbols(k));
-    k = k+1; hold on
+    hp(2*i-1)= scatter(score(:, 2), score(:, 1), [], squeeze(Phi{2}.Ab(1, i, :)), 'Marker',symbols(k)); % potentially also OD
+    k = k+1; 
 end
-xlabel('PC 2'), ylabel('PC 1'), grid on
-legend(hp([1 3 5 7 9 11 13 15]), 'Session1', 'Session2', 'Session3', 'Session4', 'Session5', 'Session6', 'Session7', 'Session8')
-colorbar(), hold off
+xlabel('PC 2'), ylabel('PC 1'), grid on, colorbar(), hold off
+legend(hp(legend_indices), legend_entries)
 
 
-%% interference left 105
+
+%% Part B
+% interference left 105
 RRl = reshape(squeeze(rr{2}.left(1, :, :, :)), Sessions*Trials, N);
 [coeff_rrl,score_rrl,latent_rrl, ~, explained_rrl, mu_rrl] = pca(RRl);
+% explained variance
 figure(71)
 plot(cumsum(explained_rrl(1:5)), 'LineWidth', 1.5), grid on
 xlabel('# PC'), ylabel('CEV [%]')
 
 figure(7) % colored by kinetic energy
-symbols = ['+', '*', 's', '^', '+', '*', 's', '^']; k = 1;  hp = NaN(Sessions, 1);
+k = 1;  hp = NaN(Sessions, 1); hold all
 for i = 1:Sessions
     % Reference
     score = (squeeze(rr{2}.left(1, i, :, :)) - mu_rrl)*coeff_rrl;
-    hp(2*i) = scatter(score(:, 2), score(:, 1), [], squeeze(qr{2}.left(1, i, :)), 'Marker', '.'); hold on
+    hp(2*i) = scatter(score(:, 2), score(:, 1),  [], squeeze(qr{2}.left(1, i, :)), 'Marker', '.');
 
     % Probe
     score = (squeeze(rp{2}.left(1, i, :, :)) - mu_rrl)*coeff_rrl;
     hp(2*i-1)= scatter(score(:, 2), score(:, 1), [], squeeze(qp{2}.left(1, i, :)), 'Marker',symbols(k));
     k = k+1;
 end
-xlabel('PC 2'), ylabel('PC 1'), grid on
-legend(hp([1 3 5 7 9 11 13 15]), 'Session1', 'Session2', 'Session3', 'Session4', 'Session5', 'Session6', 'Session7', 'Session8')
-colorbar(), hold off
+xlabel('PC 2'), ylabel('PC 1'), grid on, colorbar(), hold off
+legend(hp(legend_indices), legend_entries)
 
 figure(72) % colored by orientation difference
-symbols = ['+', '*', 's', '^', '+', '*', 's', '^']; k = 1;  hp = NaN(Sessions, 1);
+k = 1;  hp = NaN(Sessions, 1); hold all
 for i = 1:Sessions
     % Reference
     score = (squeeze(rr{2}.left(1, i, :, :)) - mu_rrl)*coeff_rrl;
-    hp(2*i) = scatter(score(:, 2), score(:, 1), 'k.'); hold on
+    hp(2*i) = scatter(score(:, 2), score(:, 1), 'k.');
 
     % Probe
     score = (squeeze(rp{2}.left(1, i, :, :)) - mu_rrl)*coeff_rrl;
-    hp(2*i-1)= scatter(score(:, 2), score(:, 1), [], squeeze(OD{2}.left(1, i, :)), 'Marker',symbols(k));
+    hp(2*i-1)= scatter(score(:, 2), score(:, 1), [], squeeze(Phi{2}.left(1, i, :)), 'Marker',symbols(k)); % potentially also OD
     k = k+1;
 end
-xlabel('PC 2'), ylabel('PC 1'), grid on
-legend(hp([1 3 5 7 9 11 13 15]), 'Session1', 'Session2', 'Session3', 'Session4', 'Session5', 'Session6', 'Session7', 'Session8')
-colorbar(), hold off
+xlabel('PC 2'), ylabel('PC 1'), grid on, colorbar(), hold off
+legend(hp(legend_indices), legend_entries)
 
-%%
 % interference right 165
 RRr = reshape(squeeze(rr{2}.right(1, :, :, :)), Sessions*Trials, N);
 [coeff_rrr,score_rrr,latent_rrr, ~, explained_rrr, mu_rrr] = pca(RRr);
+% explained variance
 figure(81)
 plot(cumsum(explained_rrr(1:5)), 'LineWidth', 1.5), grid on
 xlabel('# PC'), ylabel('CEV [%]')
 
 figure(8) % colored by kinetic energy
-symbols = ['+', '*', 's', '^', '+', '*', 's', '^']; k = 1;  hp = NaN(Sessions, 1);
+k = 1;  hp = NaN(Sessions, 1); hold all
 for i = 1:Sessions
     % Reference
     score = (squeeze(rr{2}.right(1, i, :, :)) - mu_rrr)*coeff_rrr;
-    hp(2*i) = scatter(score(:, 2), score(:, 1), [], squeeze(qr{2}.right(1, i, :)), 'Marker', '.'); hold on
+    hp(2*i) = scatter(score(:, 2), score(:, 1), [], squeeze(qr{2}.right(1, i, :)), 'Marker', '.');
 
     % Probe
     score = (squeeze(rp{2}.right(1, i, :, :)) - mu_rrr)*coeff_rrr;
     hp(2*i-1)= scatter(score(:, 2), score(:, 1), [], squeeze(qp{2}.right(1, i, :)), 'Marker',symbols(k));
     k = k+1;
 end
-xlabel('PC 2'), ylabel('PC 1'), grid on
-legend(hp([1 3 5 7 9 11 13 15]), 'Session1', 'Session2', 'Session3', 'Session4', 'Session5', 'Session6', 'Session7', 'Session8')
-colorbar(), hold off
+xlabel('PC 2'), ylabel('PC 1'), grid on, colorbar(), hold off
+legend(hp(legend_indices), legend_entries)
+
 
 figure(82) % colored by orientation difference
-symbols = ['+', '*', 's', '^', '+', '*', 's', '^']; k = 1;  hp = NaN(Sessions, 1);
+k = 1;  hp = NaN(Sessions, 1); hold all
 for i = 1:Sessions
     % Reference
     score = (squeeze(rr{2}.right(1, i, :, :)) - mu_rrr)*coeff_rrr;
-    hp(2*i) = scatter(score(:, 2), score(:, 1), 'k.'); hold on
+    hp(2*i) = scatter(score(:, 2), score(:, 1), 'k.'); 
 
     % Probe
     score = (squeeze(rp{2}.right(1, i, :, :)) - mu_rrr)*coeff_rrr;
-    hp(2*i-1)= scatter(score(:, 2), score(:, 1), [], squeeze(OD{2}.right(1, i, :)), 'Marker',symbols(k));
+    hp(2*i-1)= scatter(score(:, 2), score(:, 1), [], squeeze(Phi{2}.right(1, i, :)), 'Marker',symbols(k)); % potentially also OD
     k = k+1;
 end
-xlabel('PC 2'), ylabel('PC 1'), grid on
-legend(hp([1 3 5 7 9 11 13 15]), 'Session1', 'Session2', 'Session3', 'Session4', 'Session5', 'Session6', 'Session7', 'Session8')
-colorbar(), hold off
+xlabel('PC 2'), ylabel('PC 1'), grid on, colorbar(), hold off
+legend(hp(legend_indices), legend_entries)
 
-%% At
+%% Part A (At)
 RRt = reshape(squeeze(rr{2}.At(1, :, :, :)), Sessions*Trials, N);
 [coeff_rrt,score_rrt,latent_rrt, ~, explained_rrt, mu_rrt] = pca(RRt);
+% explained variance
 figure(91)
 plot(cumsum(explained_rrt(1:5)), 'LineWidth', 1.5), grid on
-xlabel('# PC'), ylabel('CEV [%]') % cumulative explained variance
+xlabel('# PC'), ylabel('CEV [%]')
 
 figure(9) % colored by kinetic energy
-symbols = ['+', '*', 's', '^', '+', '*', 's', '^']; k = 1;  hp = NaN(Sessions, 1);
+k = 1;  hp = NaN(Sessions, 1); hold all
 for i = 1:Sessions
     % Reference
     score = (squeeze(rr{2}.At(1, i, :, :)) - mu_rrt)*coeff_rrt;
-    hp(2*i) = scatter(score(:, 2), score(:, 1), [], squeeze(qr{2}.At(1, i, :)), 'Marker', '.'); hold on
+    hp(2*i) = scatter(score(:, 2), score(:, 1), [], squeeze(qr{2}.At(1, i, :)), 'Marker', '.'); 
 
     % Probe
     score = (squeeze(rp{2}.At(1, i, :, :)) - mu_rrt)*coeff_rrt;
     hp(2*i-1)= scatter(score(:, 2), score(:, 1), [], squeeze(qp{2}.At(1, i, :)), 'Marker',symbols(k));
     k = k+1;
 end
-xlabel('PC 2'), ylabel('PC 1'), grid on
-legend(hp([1 3 5 7 9 11 13 15]), 'Session1', 'Session2', 'Session3', 'Session4', 'Session5', 'Session6', 'Session7', 'Session8')
-colorbar(), hold off
+xlabel('PC 2'), ylabel('PC 1'), grid on, colorbar(), hold off
+legend(hp(legend_indices), legend_entries)
+
 
 figure(92) % colored by orientation difference
-symbols = ['+', '*', 's', '^', '+', '*', 's', '^']; k = 1;  hp = NaN(Sessions, 1);
+k = 1;  hp = NaN(Sessions, 1); hold all
 for i = 1:Sessions
     % Reference
     score = (squeeze(rr{2}.At(1, i, :, :)) - mu_rrt)*coeff_rrt;
-    hp(2*i) = scatter(score(:, 2), score(:, 1), [], squeeze(qr{2}.At(1, i, :)), 'Marker', '.'); hold on
+    hp(2*i) = scatter(score(:, 2), score(:, 1), 'k.'); 
 
     % Probe
     score = (squeeze(rp{2}.At(1, i, :, :)) - mu_rrt)*coeff_rrt;
-    hp(2*i-1)= scatter(score(:, 2), score(:, 1), [], squeeze(OD{2}.At(1, i, :)), 'Marker',symbols(k));
+    hp(2*i-1)= scatter(score(:, 2), score(:, 1), [], squeeze(Phi{2}.At(1, i, :)), 'Marker',symbols(k)); % potentially also OD
     k = k+1;
 end
-xlabel('PC 2'), ylabel('PC 1'), grid on
-legend(hp([1 3 5 7 9 11 13 15]), 'Session1', 'Session2', 'Session3', 'Session4', 'Session5', 'Session6', 'Session7', 'Session8')
-colorbar(), hold off
+xlabel('PC 2'), ylabel('PC 1'), grid on, colorbar(), hold off
+legend(hp(legend_indices), legend_entries)
+
 
 
 
